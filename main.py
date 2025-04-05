@@ -1,6 +1,14 @@
 import numpy as np
 from scipy.optimize import newton
 
+def wait_to_continue():
+    while True:
+        choice = input("\nPress 0 to return to the menu: ")
+        if choice.strip() == '0':
+            break
+        else:
+            print("Invalid input. Please press 0.")
+
 
 def mean_return():
     """Arithmetic mean of periodic returns."""
@@ -8,8 +16,10 @@ def mean_return():
         returns = list(map(float, input("Enter periodic returns (comma-separated): ").split(',')))
         mean = np.mean(returns)
         print(f"Arithmetic Mean Return: {mean:.4f} or {mean*100:.2f}%\n")
+        wait_to_continue()
     except ValueError:
         print("Invalid input.\n")
+        wait_to_continue()
 
 
 def geometric_mean_return():
@@ -20,10 +30,13 @@ def geometric_mean_return():
         geometric_mean = product ** (1/len(returns)) - 1
         if geometric_mean < -1:
             print("Error: Negative value due to invalid returns (e.g., <-100%).\n")
+            wait_to_continue()
         else:
             print(f"Geometric Mean Return: {geometric_mean:.4f} or {geometric_mean*100:.2f}%\n")
+            wait_to_continue()
     except ValueError:
         print("Invalid input. Use numbers separated by commas.\n")
+        wait_to_continue()
 
 
 def irr_calculator():
@@ -32,10 +45,13 @@ def irr_calculator():
         cash_flows = list(map(float, input("Enter cash flows (comma-separated): ").split(',')))
         irr = newton(lambda r: sum(cf / (1 + r)**i for i, cf in enumerate(cash_flows)), x0=0.1)
         print(f"IRR: {irr:.4f} or {irr*100:.2f}%\n")
+        wait_to_continue()
     except RuntimeError as e:  # Catch specific solver error
         print(f"IRR could not be calculated: {e}\n")
+        wait_to_continue()
     except ValueError:
         print("Invalid cash flows.\n")
+        wait_to_continue()
 
 
 def annualized_return():
@@ -45,8 +61,10 @@ def annualized_return():
         years = float(input("Time period (years): "))
         annualized = (1 + total_return) ** (1/years) - 1
         print(f"Annualized Return: {annualized:.4f} or {annualized*100:.2f}%\n")
+        wait_to_continue()
     except ValueError:
         print("Invalid input. Use numbers.\n")
+        wait_to_continue()
 
 
 def continuously_compounded_return():
@@ -56,8 +74,41 @@ def continuously_compounded_return():
         end = float(input("Ending value: "))
         cc_return = np.log(end / start)
         print(f"Continuously Compounded Return: {cc_return:.4f} or {cc_return*100:.2f}%\n")
+        wait_to_continue()
     except ValueError:
         print("Invalid input. Use numbers.\n")
+        wait_to_continue()
+
+
+def pv_annuity():
+    """Calculate Present Value of an Annuity."""
+    try:
+        n = int(input("Number of periods (N): "))
+        iy = float(input("Periodic interest rate (I/Y as decimal): "))
+        pmt = float(input("Periodic payment (PMT): "))
+        mode = input("Payment mode - Beginning (B) or End (E) of period? [B/E]: ").upper()
+
+        if iy == 0:
+            pv = pmt * n
+            if mode == 'B':
+                pv *= 1
+        else:
+            annuity_factor = (1 - (1 + iy) ** -n) / iy
+            if mode == 'B':
+                annuity_factor *= (1 + iy)
+
+            pv = pmt * annuity_factor
+
+        print(f"\nPresent Value of Annuity: {pv:.2f}\n")
+        wait_to_continue()
+
+    except ValueError:
+        print("Invalid input. Ensure N is an integer and I/Y/PMT are numbers.\n")
+        wait_to_continue()
+
+    except ZeroDivisionError:
+        print("Interest rate (I/Y) cannot be zero in this calculation.\n")
+        wait_to_continue()
 
 
 # Submenu for Quantitative Methods
@@ -70,6 +121,7 @@ def quantitative_method_submenu():
             "3": ("IRR Calculator", irr_calculator),
             "4": ("Annualized Return", annualized_return),
             "5": ("Continuously Compounded Return", continuously_compounded_return),
+            "6": ("PV of Annuity", pv_annuity),
             "0": ("Back to Main Menu", None)
         }
         for k, (name, _) in tools.items():
